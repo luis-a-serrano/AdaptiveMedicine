@@ -37,7 +37,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
       }
 
       /* Statechart Events & States */
-      enum Events { Initialize, Delete, Error }
+      enum Events { Initialize, Delete, Error, Reset }
       enum States { Uninitialized, Initialized, Illegal }
 
 
@@ -57,29 +57,28 @@ namespace AdaptiveMedicine.Experiments.Actors {
             if (config != null) {
 
                var modelsList = new Dictionary<string, string>();
-               var configuringAlgorithms = new List<Task<bool>>();
+               var configuringModels = new List<Task<bool>>();
 
                foreach (var modelInfo in config.ModelsInfo) {
-                  var algorithmConfig = new AlgorithmConfigOptions {
-                     Order = modelInfo.Order,
-                     Algorithm = modelInfo.Algorithm
+                  var modelConfig = new AlgorithmConfigOptions {
+                     Order = modelInfo.Order
                   };
 
-                  var algorithmId = $"{actor.Id}:{Guid.NewGuid()}";
-                  while (modelsList.ContainsKey(algorithmId)) {
-                     algorithmId = $"{actor.Id}:{Guid.NewGuid()}";
+                  var modelId = $"{actor.Id}:{Guid.NewGuid()}";
+                  while (modelsList.ContainsKey(modelId)) {
+                     modelId = $"{actor.Id}:{Guid.NewGuid()}";
                   }
 
-                  var serviceUri = algorithmConfig.Algorithm.GetServiceName().ToServiceUri();
+                  var serviceUri = modelInfo.Algorithm.GetServiceName().ToServiceUri();
 
-                  configuringAlgorithms.Add(
-                     ActorProxy.Create<IAlgorithmActor>(new ActorId(algorithmId), serviceUri)
-                        .ConfigurateAsync(anEvent.Id, algorithmConfig));
+                  configuringModels.Add(
+                     ActorProxy.Create<IAlgorithmActor>(new ActorId(modelId), serviceUri)
+                        .ConfigurateAsync(anEvent.Id, modelConfig));
 
-                  modelsList[algorithmId] = algorithmConfig.Algorithm;
+                  modelsList[modelId] = modelInfo.Algorithm;
                }
 
-               await Task.WhenAll(configuringAlgorithms);
+               await Task.WhenAll(configuringModels);
                await actor.StateManager.SetStateAsync<Dictionary<string, string>>(ModelsListLabel, modelsList);
 
             } else {
@@ -91,6 +90,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
 
          [Transition(Events.Delete)]
          [Transition(Events.Error, States.Illegal)]
+         [Transition(Events.Reset, States.Illegal)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }
@@ -107,6 +107,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
          [Transition(Events.Initialize, States.Illegal)]
          [Transition(Events.Delete, States.Uninitialized)]
          [Transition(Events.Error, States.Illegal)]
+         [Transition(Events.Reset, States.Illegal)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }
@@ -120,18 +121,16 @@ namespace AdaptiveMedicine.Experiments.Actors {
          private Illegal() : base() { }
          #endregion
 
-         public override Task<bool> EntryActionAsync(Actor actor) {
-            ActorEventSource.Current.ActorMessage(actor, "Something wrong happened to this manager.");
-            return base.EntryActionAsync(actor);
+         public override Task<IEnumerable<IEvent>> EntryActionAsync(IEvent anEvent, Actor actor) {
+            return Task.FromResult<IEnumerable<IEvent>>(
+               new IEvent[] {
+                  new StatechartEvent(Events.Reset, anEvent.Id)});
          }
 
          [Transition(Events.Initialize, States.Uninitialized)]
-         public Task<IEnumerable<IEvent>> ForwardEventAsync(IEvent anEvent, Actor actor) {
-            return Task.FromResult<IEnumerable<IEvent>>(new IEvent[] { anEvent });
-         }
-
          [Transition(Events.Delete, States.Uninitialized)]
-         [Transition(Events.Error)]
+         [Transition(Events.Error, States.Uninitialized)]
+         [Transition(Events.Reset, States.Uninitialized)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }

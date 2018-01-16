@@ -104,6 +104,10 @@
       <Project>{764b4e36-e7e0-45e2-a836-53d7c36c7526}</Project>
       <Name>StatechartActor</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Utilities\Utilities\Utilities.csproj">
+      <Project>{c3be9c05-70dc-4379-9a3c-17c4c2f85569}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Interfaces\IAlgorithmActor\IAlgorithmActor.csproj">
       <Project>{52fa1e54-9f60-431c-aa7c-983483510f07}</Project>
       <Name>IAlgorithmActor</Name>

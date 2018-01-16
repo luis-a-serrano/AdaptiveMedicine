@@ -101,6 +101,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\FinalStateAttribute.cs" />
     <Compile Include="Attributes\InitialStateAttribute.cs" />
     <Compile Include="Attributes\StateAttribute.cs" />
     <Compile Include="Attributes\TransitionAttribute.cs" />

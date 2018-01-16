@@ -20,7 +20,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
    [StatePersistence(StatePersistence.Persisted)]
    internal class ExperimentManagerActor: StatechartActor, IExperimentManagerActor {
       public const string ConfigurationLabel = "Experiment.Configuration";
-      public const string PatientsPrefix = "Experiment.Patients:";
+      public const string ParticipantPrefix = "Experiment.Participant:";
 
       public ExperimentManagerActor(ActorService actorService, ActorId actorId)
           : base(actorService, actorId) {
@@ -42,7 +42,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
       }
 
       /* Statechart Events & States */
-      enum Events { Initialize, Delete, AddParticipant, Error }
+      enum Events { Initialize, Delete, AddParticipant, Error, Reset }
       enum States { Uninitialized, Initialized, Illegal }
 
 
@@ -71,6 +71,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
          [Transition(Events.Delete)]
          [Transition(Events.AddParticipant, States.Illegal)]
          [Transition(Events.Error, States.Illegal)]
+         [Transition(Events.Reset, States.Illegal)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }
@@ -87,6 +88,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
          [Transition(Events.Initialize, States.Illegal)]
          [Transition(Events.Delete, States.Uninitialized)]
          [Transition(Events.Error, States.Illegal)]
+         [Transition(Events.Reset, States.Illegal)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }
@@ -100,7 +102,7 @@ namespace AdaptiveMedicine.Experiments.Actors {
                var participant = anEvent.Input as ParticipantDetails;
 
                if (participant != null) {
-                  var participationKey = PatientsPrefix + participant.Id;
+                  var participationKey = ParticipantPrefix + participant.Id;
                   var participationDetails = await actor.StateManager.TryGetStateAsync<bool>(participationKey);
 
                   if (!participationDetails.HasValue) {
@@ -149,18 +151,17 @@ namespace AdaptiveMedicine.Experiments.Actors {
          private Illegal() : base() { }
          #endregion
 
-         public override Task<bool> EntryActionAsync(Actor actor) {
-            return base.EntryActionAsync(actor);
+         public override Task<IEnumerable<IEvent>> EntryActionAsync(IEvent anEvent, Actor actor) {
+            return Task.FromResult<IEnumerable<IEvent>>(
+               new IEvent[] {
+                  new StatechartEvent(Events.Reset, anEvent.Id)});
          }
 
          [Transition(Events.Initialize, States.Uninitialized)]
-         public Task<IEnumerable<IEvent>> ForwardEventAsync(IEvent anEvent, Actor actor) {
-            return Task.FromResult<IEnumerable<IEvent>>(new IEvent[] { anEvent });
-         }
-
          [Transition(Events.Delete, States.Uninitialized)]
-         [Transition(Events.AddParticipant)]
-         [Transition(Events.Error)]
+         [Transition(Events.AddParticipant, States.Uninitialized)]
+         [Transition(Events.Error, States.Uninitialized)]
+         [Transition(Events.Reset, States.Uninitialized)]
          public Task<IEnumerable<IEvent>> DoNothingAsync(IEvent anEvent, Actor actor) {
             return Task.FromResult<IEnumerable<IEvent>>(null);
          }

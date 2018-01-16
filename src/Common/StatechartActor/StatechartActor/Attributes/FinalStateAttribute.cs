@@ -3,9 +3,9 @@
 namespace AdaptiveMedicine.Common.Statechart.Attributes {
    [AttributeUsage(
          AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
-   public class InitialStateAttribute: StateAttribute {
+   public class FinalStateAttribute: StateAttribute {
 
-      public InitialStateAttribute(object stateType)
+      public FinalStateAttribute(object stateType)
          : base(stateType) {
       }
    }

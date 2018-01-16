@@ -40,12 +40,12 @@ namespace AdaptiveMedicine.Common.Actors {
          }
       }
 
-      public virtual Task<bool> EntryActionAsync(Actor actor) {
-         return Task.FromResult(true);
+      public virtual Task<IEnumerable<IEvent>> EntryActionAsync(IEvent anEvent, Actor actor) {
+         return Task.FromResult<IEnumerable<IEvent>>(null);
       }
 
-      public virtual Task<bool> ExitActionAsync(Actor actor) {
-         return Task.FromResult(true);
+      public virtual Task<IEnumerable<IEvent>> ExitActionAsync(IEvent anEvent, Actor actor) {
+         return Task.FromResult<IEnumerable<IEvent>>(null);
       }
 
       public ITransition GetActivatedTransition(IEvent anEvent) {

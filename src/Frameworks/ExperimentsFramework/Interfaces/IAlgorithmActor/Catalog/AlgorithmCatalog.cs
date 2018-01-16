@@ -14,29 +14,6 @@ namespace AdaptiveMedicine.Experiments.AlgorithmActor {
    public static class Extensions {
 
       private static readonly ConcurrentDictionary<string, string> _ServiceNames = new ConcurrentDictionary<string, string>();
-      //public static string GetServiceName(this AlgorithmCatalog algorithm) {
-
-      //   if (!_ServiceNames.TryGetValue(algorithm, out string serviceName)) {
-
-      //      var memberInfo = typeof(AlgorithmCatalog).GetMember(algorithm.ToString()).FirstOrDefault();
-      //      if (memberInfo != null) {
-
-      //         var serviceNameAttribute = (ServiceNameAttribute)memberInfo.GetCustomAttributes(typeof(ServiceNameAttribute), false).FirstOrDefault();
-      //         if (serviceNameAttribute != null && !String.IsNullOrWhiteSpace(serviceNameAttribute.Name)) {
-
-      //            serviceName = serviceNameAttribute.Name;
-      //            _ServiceNames[algorithm] = serviceName;
-
-      //         } else {
-      //            // throw
-      //         }
-      //      } else {
-      //         // throw
-      //      }
-      //   }
-
-      //   return serviceName;
-      //}
 
       public static string GetServiceName(this string algorithm) {
 
@@ -50,7 +27,6 @@ namespace AdaptiveMedicine.Experiments.AlgorithmActor {
 
                   serviceName = serviceNameAttribute.Name;
                   _ServiceNames.GetOrAdd(algorithm, serviceName);
-                  //_ServiceNames[algorithm] = serviceName;
 
                } else {
                   // throw
